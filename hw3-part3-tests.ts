@@ -2,18 +2,18 @@ import * as assert from "assert";
 import { evalParse} from './L3-eval';
 import { parseL3 } from "./L3-ast";
 
-// console.log(evalParse(`
-// (L3 (define loop (lambda (x) (loop x)))
-//     ((lambda ((f lazy)) 1) (loop 0)))`));
+assert.deepEqual(evalParse(`
+(L3 (define loop (lambda (x) (loop x)))
+    ((lambda ((f lazy)) 1) (loop 0)))`),1);
 
-//     console.log(evalParse(`
-//     (L3 (define f 
-//         (lambda (a (b lazy))
-//           a))
+assert.deepEqual(evalParse(`
+    (L3 (define f 
+        (lambda (a (b lazy))
+          a))
        
-//       (f 1 (/ 1 0)))`));
+      (f 1 (/ 1 0)))`),1);
 
-      console.log(evalParse(`
+assert.deepEqual(evalParse(`
       (L3
         
 (define loop
@@ -30,5 +30,5 @@ import { parseL3 } from "./L3-ast";
             1
             y))
       (loop 0))
-    )0))`));
+    )0))`),1);
     

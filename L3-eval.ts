@@ -30,7 +30,7 @@ const L3applicativeEval = (exp: CExp | Error, env: Env): Value | Error =>
     isLitExp(exp) ? exp.val :
     isIfExp(exp) ? evalIf(exp, env) :
     isProcExp(exp) ? evalProc(exp, env) :
-    //change here  to support lazy
+    //dont evaluate operands yet. only if it's a Closure, and only the NOT lazy ones.
     isAppExp(exp) ?  L3specialApplyProcedure(L3applicativeEval(exp.rator, env),
                                          exp.rands,
                                      env) :
@@ -49,10 +49,7 @@ const evalIf = (exp: IfExp, env: Env): Value | Error => {
 const evalProc = (exp: ProcExp, env: Env): Value =>
     makeClosure(exp.args, exp.body);
 
-
-
 const L3specialApplyProcedure = (proc: Value | Error, args: CExp[], env: Env): Value | Error =>{
-
     if(isError(proc)){
         return proc;
     }
@@ -60,50 +57,23 @@ const L3specialApplyProcedure = (proc: Value | Error, args: CExp[], env: Env): V
            return L3applyProcedure(proc,
                     map((rand) => L3applicativeEval(rand, env),args),env); 
     }
-    else if(isClosure(proc)){
-            // var i;
-            // console.log("proc:")
-            // console.log(proc);
-            // console.log("body:")
-            // console.log(proc.body);
-        
-            // console.log("args:")
-
-            // for(i=0; i<args.length; i++){
-            //     //console.log(proc.params[i])
-            //     console.log(args[i]);
-                
-            // }
-
-            //  zip params and args together. for each pair - if its a lazy - return the CExp. else, evaluate -> then return.
-           
-           
+    else if(isClosure(proc)){ 
             const vars = map((p) => p.var, proc.params);
-        
-           
             const body = renameExps(proc.body);
+            //eval only some of the operands. the rest just leave as they are.
             const evaled_some= zip(proc.params,args).map((param_arg)=> isLazyVarDecl(param_arg["0"]) ? param_arg["1"]  :  
             L3applicativeEval(param_arg["1"], env));
-            
             if(!hasNoError(evaled_some))
                 return Error(`Bad argument: ${getErrorMessages(args)}`)
-                
-         
-            // var i;
-            // for (i=0; i<evaled_some.length; i++){
-            //     isCExp(evaled_some[i])? console.log("yes..") : console.log(valueToLitExp(evaled_some[i]));
-
-            // }
+                //the evaluated operands - turn into LitExp for substitution.
            return L3applicativeEvalSeq(substitute(body, vars, evaled_some.map((x)=> isCExp(x)? x : valueToLitExp(x))), env);
-           
         }
         else
             return  Error("Bad procedure " + JSON.stringify(proc))
 }
 
-
+// similar to the normal-eval's function - keep evaluating.
 const L3applicativeEvalSeq = (exps: CExp[], env: Env): Value | Error => {
-
     if (isEmpty(rest(exps)))
         return L3applicativeEval(first(exps), env);
     else {
@@ -193,6 +163,7 @@ export const renameExps = (exps: CExp[]): CExp[] => {
         e;
     // Rename the params and substitute old params with renamed ones.
     //  First recursively rename all ProcExps inside the body.
+    // Changes: making sure Procedures keep their argument types (meaning VarDecl OR LazyVarDecl)
     const replaceProc = (e: ProcExp): ProcExp => {
         const oldArgs = map((arg: (VarDecl | LazyVarDecl)): string => arg.var, e.args);
         const newArgs = map(varGen, oldArgs);
