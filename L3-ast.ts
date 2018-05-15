@@ -107,13 +107,13 @@ export const makeLitExp = (val: SExp): LitExp =>
 export const isProgram = (x: any): x is Program => x.tag === "Program";
 export const isDefineExp = (x: any): x is DefineExp => x.tag === "DefineExp";
 
-export const isNumExp = (x: any): x is NumExp => x.tag === "NumExp";
+export const isNumExp = (x: any): x is NumExp =>{ if(x.tag === "NumExp") return true};
 export const isBoolExp = (x: any): x is BoolExp => x.tag === "BoolExp";
 export const isStrExp = (x: any): x is StrExp => x.tag === "StrExp";
 export const isPrimOp = (x: any): x is PrimOp => x.tag === "PrimOp";
 export const isVarRef = (x: any): x is VarRef => x.tag === "VarRef";
 export const isVarDecl = (x: any): x is VarDecl => x.tag === "VarDecl";
-export const isLazyVarDecl = (x: any): x is LazyVarDecl => x.tag === "VarDecl";
+export const isLazyVarDecl = (x: any): x is LazyVarDecl => x.tag === "LazyVarDecl";
 
 export const isAppExp = (x: any): x is AppExp => x.tag === "AppExp";
 // L2
